@@ -1,7 +1,9 @@
 {
   "type": "module",
   "scripts": {
-    "tunnel": "cloudflared tunnel --url http://localhost:3000"
+    "start": "node server.js",
+    "tunnel": "cloudflared tunnel --url http://localhost:3000",
+    "set-webhook": "node set-webhook.js"
   },
   "dependencies": {
     "fastify": "^5.12.3"

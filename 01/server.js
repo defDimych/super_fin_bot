@@ -7,7 +7,7 @@ const PORT = process.env.PORT ?? 3000;
 
 const app = Fastify({ logger: true });
 
-app.post('/webhook', async (request, reply) => {
+app.post('/webhook/telegram', async (request, reply) => {
   console.log(JSON.stringify(request.body, null, 2));
   return reply.send({ ok: true });
 });
