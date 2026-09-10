@@ -1,3 +1,9 @@
 {
-  "type": "module"
+  "type": "module",
+  "scripts": {
+    "tunnel": "cloudflared tunnel --url http://localhost:3000"
+  },
+  "dependencies": {
+    "fastify": "^5.12.3"
+  }
 }
