@@ -1,0 +1,66 @@
+@startuml c4-level3-component
+title Super Fin Bot — C4 Model, Level 3 (Components of the Webhook Server)
+
+skinparam defaultTextAlignment center
+skinparam shadowing false
+skinparam rectangle {
+  BackgroundColor<<component>> #85BBF0
+  FontColor<<component>> #000000
+  BorderColor<<component>> #5D82A8
+  BackgroundColor<<external>> #999999
+  FontColor<<external>> #FFFFFF
+  BorderColor<<external>> #6B6B6B
+  BackgroundColor<<layer>> #FFFFFF
+  BorderColor<<layer>> #888888
+  FontColor<<layer>> #444444
+  BorderStyle<<layer>> dashed
+  BackgroundColor<<boundary>> #FFFFFF
+  BorderColor<<boundary>> #444444
+  FontColor<<boundary>> #444444
+  BorderStyle<<boundary>> dashed
+}
+
+rectangle "Telegram Bot API\n<size:10>[External System]</size>" <<external>> as telegramApi
+
+rectangle "Webhook Server\n<size:10>[Container: Node.js + Fastify]</size>" <<boundary>> {
+
+  rectangle "API" <<layer>> {
+    rectangle "HTTP App\n<size:10>[app.js]</size>\n\n<size:10>Builds the Fastify instance\nand registers routes</size>" <<component>> as app
+    rectangle "Webhook Route\n<size:10>[telegram-webhook.route.js]</size>\n\n<size:10>Binds POST /webhook/telegram\nto the controller</size>" <<component>> as route
+    rectangle "Webhook Controller\n<size:10>[telegram-webhook.controller.js]</size>\n\n<size:10>Maps the update, runs the use case,\nsends the reply, always acks</size>" <<component>> as controller
+    rectangle "Update Mapper\n<size:10>[telegram-update.mapper.js]</size>\n\n<size:10>Raw update -> { chatId, text }</size>" <<component>> as mapper
+    rectangle "Conversion Presenter\n<size:10>[conversion.presenter.js]</size>\n\n<size:10>Conversion result -> reply text</size>" <<component>> as presenter
+  }
+
+  rectangle "Application" <<layer>> {
+    rectangle "Convert Currency Use Case\n<size:10>[convert-currency.use-case.js]</size>\n\n<size:10>Normalizes the currency code and\nresolves its rate against USD</size>" <<component>> as useCase
+  }
+
+  rectangle "Infra" <<layer>> {
+    rectangle "Frankfurter Adapter\n<size:10>[frankfurter.adapter.js]</size>\n\n<size:10>getRate(base, quote)</size>" <<component>> as frankfurterAdapter
+    rectangle "Telegram Adapter\n<size:10>[telegram.adapter.js]</size>\n\n<size:10>sendMessage, setWebhook,\ngetWebhookInfo</size>" <<component>> as telegramAdapter
+    rectangle "Config\n<size:10>[config.js]</size>\n\n<size:10>Loads .env, exposes\nports, tokens, base URLs</size>" <<component>> as config
+  }
+}
+
+rectangle "Frankfurter API\n<size:10>[External System]</size>" <<external>> as frankfurterApi
+
+telegramApi --> route : "POST /webhook/telegram\n<size:10>[HTTPS/JSON]</size>"
+
+app --> route : "registers"
+route --> controller : "invokes"
+controller --> mapper : "extracts message"
+controller --> useCase : "execute(text)"
+controller --> presenter : "formats result"
+controller --> telegramAdapter : "sendMessage(chatId, text)"
+useCase --> frankfurterAdapter : "getRate('USD', code)"
+
+telegramAdapter --> telegramApi : "<size:10>[HTTPS/JSON]</size>"
+frankfurterAdapter --> frankfurterApi : "GET /v2/rate/USD/{code}\n<size:10>[HTTPS/JSON]</size>"
+
+config .up.> app : "reads"
+config .up.> route : "reads"
+config .up.> frankfurterAdapter : "reads"
+config .up.> telegramAdapter : "reads"
+
+@enduml

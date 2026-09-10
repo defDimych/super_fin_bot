@@ -1,0 +1,34 @@
+@startuml c4-level1-context
+title Super Fin Bot — C4 Model, Level 1 (System Context)
+
+skinparam defaultTextAlignment center
+skinparam shadowing false
+skinparam ArrowColor #444444
+skinparam actor {
+  BackgroundColor #08427B
+  FontColor #FFFFFF
+  BorderColor #073B6F
+}
+skinparam rectangle {
+  BackgroundColor<<system>> #1168BD
+  FontColor<<system>> #FFFFFF
+  BorderColor<<system>> #0B4884
+  BackgroundColor<<external>> #999999
+  FontColor<<external>> #FFFFFF
+  BorderColor<<external>> #6B6B6B
+}
+
+actor "User\n<size:10>[Person]</size>\n\n<size:10>Telegram user who asks for a\ncurrency rate against USD</size>" as user
+
+rectangle "Super Fin Bot\n<size:10>[Software System]</size>\n\n<size:10>Receives Telegram updates over a webhook,\nlooks up the exchange rate for the requested\ncurrency and replies in the chat</size>" <<system>> as bot
+
+rectangle "Telegram Bot API\n<size:10>[External System]</size>\n\n<size:10>Delivers chat messages to the bot\nand sends replies back to the user</size>" <<external>> as telegram
+
+rectangle "Frankfurter API\n<size:10>[External System]</size>\n\n<size:10>Public foreign exchange rates\nservice (api.frankfurter.dev)</size>" <<external>> as frankfurter
+
+user --> telegram : "Sends a currency code\n(e.g. EUR), reads the reply\n<size:10>[Telegram client]</size>"
+telegram --> bot : "Delivers message updates\n<size:10>[HTTPS/JSON webhook]</size>"
+bot --> telegram : "Sends reply messages,\nregisters the webhook URL\n<size:10>[HTTPS/JSON]</size>"
+bot --> frankfurter : "Requests USD to <currency> rate\n<size:10>[HTTPS/JSON]</size>"
+
+@enduml

@@ -1,0 +1,35 @@
+@startuml c4-level2-container
+title Super Fin Bot — C4 Model, Level 2 (Containers)
+
+skinparam defaultTextAlignment center
+skinparam shadowing false
+skinparam rectangle {
+  BackgroundColor<<container>> #438DD5
+  FontColor<<container>> #FFFFFF
+  BorderColor<<container>> #2E6295
+  BackgroundColor<<external>> #999999
+  FontColor<<external>> #FFFFFF
+  BorderColor<<external>> #6B6B6B
+  BackgroundColor<<boundary>> #FFFFFF
+  BorderColor<<boundary>> #444444
+  FontColor<<boundary>> #444444
+  BorderStyle<<boundary>> dashed
+}
+
+actor "User\n<size:10>[Person]</size>" as user
+
+rectangle "Super Fin Bot\n<size:10>[Software System]</size>" <<boundary>> {
+  rectangle "Webhook Server\n<size:10>[Node.js + Fastify]</size>\n\n<size:10>Handles POST /webhook/telegram,\nlooks up the rate and replies</size>" <<container>> as server
+  rectangle "Webhook Setup CLI\n<size:10>[Node.js script]</size>\n\n<size:10>Registers the webhook URL\nwith Telegram</size>" <<container>> as setup
+}
+
+rectangle "Telegram Bot API\n<size:10>[External System]</size>" <<external>> as telegram
+rectangle "Frankfurter API\n<size:10>[External System]</size>" <<external>> as frankfurter
+
+user --> telegram : "Sends a currency code,\nreads the reply"
+telegram --> server : "Delivers updates\n<size:10>[HTTPS/JSON]</size>"
+server --> telegram : "sendMessage\n<size:10>[HTTPS/JSON]</size>"
+server --> frankfurter : "GET /v2/rate/USD/{code}\n<size:10>[HTTPS/JSON]</size>"
+setup --> telegram : "setWebhook\n<size:10>[HTTPS/JSON]</size>"
+
+@enduml
